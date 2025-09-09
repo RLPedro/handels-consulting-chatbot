@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HandelsConsulting Chatbot Demo - Bilingual</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f6f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 700px;
+            height: 600px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: #003087;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+            border-radius: 12px 12px 0 0;
+            position: relative;
+        }
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .chat-header p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .lang-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .lang-toggle:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f9fafb;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            max-width: 80%;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+        .bot-message {
+            background-color: #e6f0fa;
+            align-self: flex-start;
+            border: 1px solid #d1e0f2;
+        }
+        .user-message {
+            background-color: #003087;
+            color: #ffffff;
+            align-self: flex-end;
+            margin-left: auto;
+            border: 1px solid #002060;
+        }
+        .service-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+        .service-list li {
+            margin: 8px 0;
+            cursor: pointer;
+            color: #003087;
+            font-weight: 500;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+        .service-list li:hover {
+            color: #005bb5;
+        }
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            background: #ffffff;
+            border-top: 1px solid #e0e0e0;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #d0d4d8;
+            border-radius: 8px;
+            margin-right: 10px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .chat-input input:focus {
+            border-color: #003087;
+        }
+        .chat-input button {
+            padding: 12px 20px;
+            background-color: #003087;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: background-color 0.2s;
+        }
+        .chat-input button:hover {
+            background-color: #005bb5;
+        }
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #a0a0a0;
+            border-radius: 4px;
+        }
+        .typing-indicator {
+            background-color: #e6f0fa;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+            align-self: flex-start;
+            font-style: italic;
+            color: #666;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        @media (max-width: 600px) {
+            .chat-container {
+                height: 80vh;
+                margin: 10px;
+            }
+            .chat-header h2 {
+                font-size: 1.2rem;
+            }
+            .chat-input input, .chat-input button {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2 id="headerTitle">HandelsConsulting Assistant</h2>
+            <p id="headerSubtitle">Discover our expert consulting services!</p>
+            <button class="lang-toggle" onclick="toggleLanguage()">SV</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message" id="welcomeMessage">
+                <span id="welcomeText">Hi there! I'm Alex, a digital assistant from HandelsConsulting. How can I help you today? Feel free to ask about our services, like "Tell me about Sustainability," or anything about our company. Or just say hi! 😊<br>
+                <ul class="service-list" id="serviceMenu">
+                    <li onclick="selectService('strategy')" id="strategyLi">Strategy & Market</li>
+                    <li onclick="selectService('customer')" id="customerLi">Customer Knowledge</li>
+                    <li onclick="selectService('operations')" id="operationsLi">Operational Business Management</li>
+                    <li onclick="selectService('digital')" id="digitalLi">Digitalization</li>
+                    <li onclick="selectService('sustainability')" id="sustainabilityLi">Sustainability</li>
+                    <li onclick="selectService('organization')" id="organizationLi">Organization</li>
+                </ul></span>
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Bilingual content: English and Swedish
+        const languages = {
+            en: {
+                headerTitle: "HandelsConsulting Assistant",
+                headerSubtitle: "Discover our expert consulting services!",
+                welcome: "Hi there! I'm Alex, a digital assistant from HandelsConsulting. How can I help you today? Feel free to ask about our services, like 'Tell me about Sustainability,' or anything about our company. Or just say hi! 😊",
+                services: {
+                    strategy: {
+                        name: "Strategy & Market",
+                        desc: "Within Strategy & Market, we help companies understand their potential, opportunities, competitors, and external factors to make informed decisions. Our proven methodology drives success in both national and international projects.",
+                        keywords: ["strategy", "market", "marknad", "strategi", "competitors", "business strategy"]
+                    },
+                    customer: {
+                        name: "Customer Knowledge",
+                        desc: "In Customer Knowledge, we conduct surveys and analyses to understand existing, potential, or past customers. We focus on their experiences, demands, demographics, and behaviors to deliver actionable insights.",
+                        keywords: ["customer", "kund", "kännedom", "survey", "customer behavior", "insights"]
+                    },
+                    operations: {
+                        name: "Operational Business Management",
+                        desc: "Operational Business Management is key to any organization. We use data-driven decisions to tackle operational challenges, setting the stage for growth and flexibility in a dynamic market.",
+                        keywords: ["operations", "operativ", "verksamhet", "styrning", "management", "business operations"]
+                    },
+                    digital: {
+                        name: "Digitalization",
+                        desc: "In the era of digital transformation, we help businesses digitalize their models to unlock new revenue streams and create customer value. Our evaluations ensure successful digital strategies.",
+                        keywords: ["digital", "digitalisering", "digital transformation", "technology"]
+                    },
+                    sustainability: {
+                        name: "Sustainability",
+                        desc: "Sustainability blends economic, social, and environmental goals. Using cutting-edge academic knowledge, we help businesses adopt sustainable practices that boost profitability.",
+                        keywords: ["sustainability", "hållbarhet", "hallbarhet", "environment", "sustainable business"]
+                    },
+                    organization: {
+                        name: "Organization",
+                        desc: "In Organization, we analyze performance to unlock synergies, competitive advantages, and efficiency, offering fresh external perspectives to enhance your operations.",
+                        keywords: ["organization", "organisation", "organisatorisk", "efficiency", "organizational performance"]
+                    }
+                },
+                companyInfo: {
+                    about: "We're a consulting firm powered by top students from the School of Business, Economics and Law at the University of Gothenburg. We provide expert services to businesses, focusing on growth, stability, competitiveness, and development. With over 2,300 projects and a 4.73/5 satisfaction rating, we bring fresh academic insights to real-world challenges.",
+                    team: "Our team is made up of passionate students from the School of Business, Economics and Law at the University of Gothenburg, specializing in areas like business administration, economics, finance, entrepreneurship, international trade, logistics, and sustainability. They're eager to bring innovative ideas to your projects!",
+                    stats: "We've delivered more than 2,300 projects with an average customer satisfaction of 4.73 out of 5. Our strength is in blending academic excellence with practical solutions."
+                },
+                inputPlaceholder: "Type your message...",
+                sendButton: "Send",
+                contactResponse: "Absolutely, I'd love to connect you with our team! Head over to our <a href='https://handelsconsulting.se/kontakt/' target='_blank'>contact page</a> or drop an email at <a href='mailto:info@handelsconsulting.se'>info@handelsconsulting.se</a>. What else is on your mind?",
+                menuResponse: "Sure, here's a quick overview of our services:",
+                fallbackResponse: "Hmm, I'm not quite catching that. Could you tell me more or rephrase? For example, are you asking about one of our services like Sustainability, or something else about the company?",
+                clarificationResponse: "That could relate to a few things. Did you mean {suggestedName}, or perhaps something different? Let me know!",
+                greetingResponses: ["Hey! Great to hear from you. What can I assist with today?", "Hello! I'm Alex, a digital assistant ready to chat about HandelsConsulting. What's up?"],
+                thanksResponses: ["You're welcome! Anything else I can help with?", "No problem at all! Glad I could assist. What next?"],
+                goodbyeResponses: ["Take care! If you have more questions, I'm here. 😊", "Bye for now! Looking forward to chatting again."],
+                responseTemplates: [
+                    "Absolutely, let's talk about {name}. {desc}<br><br>Does that answer your question, or would you like more details?",
+                    "Sure thing! On {name}: {desc}<br><br>What do you think—does this fit what you're looking for?",
+                    "Happy to dive into {name}! Here's the scoop: {desc}<br><br>Any follow-up thoughts on that?",
+                    "Great choice! {name} is one of our strengths: {desc}<br><br>Tell me, how can we apply this to your needs?",
+                    "Oh, interesting question! For {name}, we offer: {desc}<br><br>Curious—what sparked your interest in this?"
+                ],
+                typingText: "Alex is typing...",
+                toggleButton: "SV",
+                prompt: "Ask away—I'm all ears! For example, 'What do you know about digital transformation?' or 'Tell me about your team.'"
+            },
+            sv: {
+                headerTitle: "HandelsConsulting Assistent",
+                headerSubtitle: "Upptäck våra expertkonsulttjänster!",
+                welcome: "Hej! Jag är Alex, digital assistent från HandelsConsulting. Hur kan jag hjälpa dig idag? Fråga gärna om våra tjänster, som 'Berätta om Hållbarhet,' eller något om företaget. Eller säg bara hej! 😊",
+                services: {
+                    strategy: {
+                        name: "Strategi & Marknad",
+                        desc: "Inom Strategi & Marknad bistår vi företag med insikter om potential, möjligheter, konkurrenter och externa faktorer för att fatta välgrundade beslut. Vår beprövade metodik säkerställer framgång i både nationella och internationella projekt.",
+                        keywords: ["strategi", "marknad", "strategy", "konkurrenter", "affärsstrategi"]
+                    },
+                    customer: {
+                        name: "Kundkännedom",
+                        desc: "Inom Kundkännedom genomför vi undersökningar och analyser för att förstå befintliga, potentiella eller tidigare kunder. Vi fokuserar på deras upplevelser, efterfrågan, demografi och beteenden för att ge handlingsbara insikter.",
+                        keywords: ["kund", "kännedom", "customer", "undersökning", "kundbeteende", "insikter"]
+                    },
+                    operations: {
+                        name: "Operativ Verksamhetsstyrning",
+                        desc: "Operativ Verksamhetsstyrning är avgörande för varje organisation. Vi använder datadrivna beslut för att lösa operativa utmaningar, vilket skapar möjligheter för tillväxt och flexibilitet på en dynamisk marknad.",
+                        keywords: ["operativ", "verksamhet", "styrning", "operations", "ledning", "affärsverksamhet"]
+                    },
+                    digital: {
+                        name: "Digitalisering",
+                        desc: "I digital transformationens era hjälper vi företag att digitalisera sina affärsmodeller för att skapa nya intäktsflöden och kundvärde. Våra utvärderingar säkerställer framgångsrika digitala strategier.",
+                        keywords: ["digitalisering", "digital", "digital transformation", "teknologi"]
+                    },
+                    sustainability: {
+                        name: "Hållbarhet",
+                        desc: "Hållbarhet kombinerar ekonomiska, sociala och miljömässiga mål. Med den senaste akademiska kunskapen hjälper vi företag att införa hållbara metoder som ökar lönsamheten.",
+                        keywords: ["hållbarhet", "hallbarhet", "sustainability", "miljö", "hållbart företagande"]
+                    },
+                    organization: {
+                        name: "Organisation",
+                        desc: "Inom Organisation analyserar vi prestanda för att låsa upp synergier, konkurrensfördelar och effektivitet, med nya externa perspektiv för att stärka din verksamhet.",
+                        keywords: ["organisation", "organization", "organisatorisk", "effektivitet", "organisationsprestanda"]
+                    }
+                },
+                companyInfo: {
+                    about: "Vi är ett konsultföretag drivet av toppstudenter från Handelshögskolan vid Göteborgs universitet. Vi erbjuder expertkonsulttjänster till företag, med fokus på tillväxt, stabilitet, konkurrenskraft och utveckling. Med över 2 300 projekt och 4,73/5 i nöjdhet kombinerar vi akademiska insikter med praktiska lösningar.",
+                    team: "Vårt team består av passionerade studenter från Handelshögskolan vid Göteborgs universitet, specialiserade inom områden som företagsekonomi, nationalekonomi, finans, entreprenörskap, internationell handel, logistik och hållbarhet. De är ivriga att bidra med innovativa idéer till dina projekt!",
+                    stats: "Vi har levererat mer än 2 300 projekt med en genomsnittlig kundnöjdhet på 4,73 av 5. Vår styrka ligger i att blanda akademisk excellens med praktiska lösningar."
+                },
+                inputPlaceholder: "Skriv ditt meddelande...",
+                sendButton: "Skicka",
+                contactResponse: "Absolut, jag skulle gärna koppla dig till vårt team! Gå till vår <a href='https://handelsconsulting.se/kontakt/' target='_blank'>kontaktsida</a> eller skicka ett mejl till <a href='mailto:info@handelsconsulting.se'>info@handelsconsulting.se</a>. Vad mer tänker du på?",
+                menuResponse: "Visst, här är en snabb överblick över våra tjänster:",
+                fallbackResponse: "Hmm, jag hänger inte riktigt med. Kan du berätta mer eller omformulera? Till exempel, frågar du om en av våra tjänster som Hållbarhet, eller något annat om företaget?",
+                clarificationResponse: "Det kunde relatera till några saker. Menade du {suggestedName}, eller kanske något annat? Låt mig veta!",
+                greetingResponses: ["Hej! Kul att höra från dig. Vad kan jag hjälpa till med idag?", "Hallå! Jag är Alex, digital assistent redo att prata om HandelsConsulting. Vad gäller?"],
+                thanksResponses: ["Ingen orsak! Något annat jag kan assistera med?", "Inga problem! Glad att jag kunde hjälpa. Vad nästa?"],
+                goodbyeResponses: ["Ta hand om dig! Om du har fler frågor är jag här. 😊", "Hej då för nu! Ser fram emot att chatta igen."],
+                responseTemplates: [
+                    "Absolut, låt oss prata om {name}. {desc}<br><br>Besvarar det din fråga, eller vill du ha mer detaljer?",
+                    "Självklart! Om {name}: {desc}<br><br>Vad tycker du—passar det vad du letar efter?",
+                    "Gärna dyker in i {name}! Här är grejen: {desc}<br><br>Några uppföljningstankar på det?",
+                    "Bra val! {name} är en av våra styrkor: {desc}<br><br>Berätta, hur kan vi tillämpa detta på dina behov?",
+                    "Åh, intressant fråga! För {name} erbjuder vi: {desc}<br><br>Nyfiken—vad väckte ditt intresse för detta?"
+                ],
+                typingText: "Alex skriver...",
+                toggleButton: "EN",
+                prompt: "Fråga på—jag lyssnar! Till exempel, 'Vad vet du om digital transformation?' eller 'Berätta om ert team.'"
+            }
+        };
+
+        let currentLang = 'en';
+        let services = languages.en.services;
+        let conversationHistory = [];
+        let lastService = null;
+
+        function updateLanguage(lang) {
+            currentLang = lang;
+            const langData = languages[lang];
+            document.getElementById('headerTitle').textContent = langData.headerTitle;
+            document.getElementById('headerSubtitle').textContent = langData.headerSubtitle;
+            document.querySelector('.lang-toggle').textContent = langData.toggleButton;
+            document.getElementById('userInput').placeholder = langData.inputPlaceholder;
+            document.querySelector('button[onclick="sendMessage()"]').textContent = langData.sendButton;
+            services = langData.services;
+
+            const welcomeSpan = document.getElementById('welcomeText');
+            if (welcomeSpan) {
+                welcomeSpan.innerHTML = langData.welcome + '<br>' +
+                    '<ul class="service-list" id="serviceMenu">' +
+                    Object.keys(services).map(key => `<li onclick="selectService('${key}')" id="${key}Li">${services[key].name}</li>`).join('') +
+                    '</ul>';
+            }
+
+            const menu = document.getElementById('serviceMenu');
+            if (menu) {
+                menu.innerHTML = Object.keys(services).map(key => `<li onclick="selectService('${key}')" id="${key}Li">${services[key].name}</li>`).join('');
+            }
+        }
+
+        function toggleLanguage() {
+            const newLang = currentLang === 'en' ? 'sv' : 'en';
+            updateLanguage(newLang);
+        }
+
+        function addMessage(text, isUser) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.innerHTML = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            return messageDiv;
+        }
+
+        function showTypingIndicator() {
+            const langData = languages[currentLang];
+            const typingDiv = addMessage(langData.typingText, false);
+            typingDiv.classList.add('typing-indicator');
+            return typingDiv;
+        }
+
+        function removeTypingIndicator(typingDiv) {
+            typingDiv.remove();
+        }
+
+        function processInput(userText) {
+            const lowerText = userText.toLowerCase();
+            const langData = languages[currentLang];
+            let response = '';
+            let matchedService = null;
+
+            conversationHistory.push({ role: 'user', content: userText });
+
+            if (lowerText.includes('hi') || lowerText.includes('hello') || lowerText.includes('hej') || lowerText.includes('hallå')) {
+                response = langData.greetingResponses[Math.floor(Math.random() * langData.greetingResponses.length)];
+            } else if (lowerText.includes('thanks') || lowerText.includes('thank you') || lowerText.includes('tack')) {
+                response = langData.thanksResponses[Math.floor(Math.random() * langData.thanksResponses.length)];
+            } else if (lowerText.includes('bye') || lowerText.includes('goodbye') || lowerText.includes('hej då')) {
+                response = langData.goodbyeResponses[Math.floor(Math.random() * langData.goodbyeResponses.length)];
+            } else {
+                for (const [key, service] of Object.entries(services)) {
+                    if (service.keywords.some(keyword => lowerText.includes(keyword))) {
+                        matchedService = key;
+                        lastService = key;
+                        const template = langData.responseTemplates[Math.floor(Math.random() * langData.responseTemplates.length)];
+                        response = template.replace('{name}', service.name).replace('{desc}', service.desc);
+                        if (conversationHistory.length > 1 && lastService) {
+                            response = `Building on our chat, ${response}`;
+                        }
+                        break;
+                    }
+                }
+
+                if (!matchedService) {
+                    if (lowerText.includes('contact') || lowerText.includes('kontakt')) {
+                        response = langData.contactResponse;
+                    } else if (lowerText.includes('stats') || lowerText.includes('facts') || lowerText.includes('info') || lowerText.includes('statistik')) {
+                        response = langData.companyInfo.stats + '<br><br>Anything else you\'d like to know about us?';
+                    } else if (lowerText.includes('who') || lowerText.includes('team') || lowerText.includes('vårt team') || lowerText.includes('studenter')) {
+                        response = langData.companyInfo.team + '<br><br>How can I connect this to your interests?';
+                    } else if (lowerText.includes('what') || lowerText.includes('vad') || lowerText.includes('handelsconsulting') || lowerText.includes('company') || lowerText.includes('företag')) {
+                        response = langData.companyInfo.about + '<br><br>Does that give you a good idea, or shall I elaborate?';
+                    } else if (lowerText.includes('menu') || lowerText.includes('meny') || lowerText.includes('services') || lowerText.includes('tjänster')) {
+                        response = langData.menuResponse + '<br><ul class="service-list">' +
+                            Object.keys(services).map(key => `<li onclick="selectService('${key}')">${services[key].name}</li>`).join('') +
+                            '</ul>' + langData.prompt;
+                    } else {
+                        const allKeywords = Object.values(services).flatMap(s => s.keywords);
+                        const closestKeyword = allKeywords.find(k => lowerText.includes(k.split(' ')[0]));
+                        if (closestKeyword) {
+                            const suggestedService = Object.entries(services).find(([_, s]) => s.keywords.includes(closestKeyword));
+                            if (suggestedService) {
+                                response = langData.clarificationResponse.replace('{suggestedName}', suggestedService[1].name);
+                            } else {
+                                response = langData.fallbackResponse;
+                            }
+                        } else {
+                            response = langData.fallbackResponse;
+                        }
+                    }
+                }
+            }
+
+            conversationHistory.push({ role: 'bot', content: response });
+            return response;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const userText = input.value.trim();
+            if (!userText) return;
+
+            addMessage(userText, true);
+            input.value = '';
+
+            const typingDiv = showTypingIndicator();
+            const delay = Math.random() * 1000 + 1000;
+
+            setTimeout(() => {
+                removeTypingIndicator(typingDiv);
+                const response = processInput(userText);
+                addMessage(response, false);
+            }, delay);
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function selectService(serviceKey) {
+            const typingDiv = showTypingIndicator();
+            const delay = Math.random() * 1000 + 1000;
+
+            setTimeout(() => {
+                removeTypingIndicator(typingDiv);
+                const langData = languages[currentLang];
+                const template = langData.responseTemplates[Math.floor(Math.random() * langData.responseTemplates.length)];
+                const response = template.replace('{name}', services[serviceKey].name).replace('{desc}', services[serviceKey].desc);
+                lastService = serviceKey;
+                addMessage(response, false);
+                conversationHistory.push({ role: 'bot', content: response });
+            }, delay);
+        }
+
+        // Initialize
+        updateLanguage('en');
+    </script>
+</body>
+</html>
